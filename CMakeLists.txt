@@ -39,38 +39,54 @@ else()
     endif()
 endif()
 
-include_directories(Haze/include/
-                    Haze/3rdparty/assimp/include/
-                    Haze/3rdparty/bullet/src/
-                    Haze/3rdparty/glad/include/
-                    Haze/3rdparty/glfw/include/
-                    Haze/3rdparty/glm/
-                    Haze/3rdparty/stb/
-                    ${ALUT_INCLUDE_DIRS})
+include_directories(Haze/3rdparty/assimp/include/
+        Haze/3rdparty/bullet/src/
+        Haze/3rdparty/glad/include/
+        Haze/3rdparty/glfw/include/
+        Haze/3rdparty/glm/
+        Haze/3rdparty/stb/
+        ${ALUT_INCLUDE_DIRS})
 
-file(GLOB VENDORS_SOURCES Haze/3rdparty/glad/src/glad.c)
-file(GLOB PROJECT_HEADERS Haze/include/*.hpp)
-file(GLOB PROJECT_SOURCES Haze/src/*.cpp)
+include_directories(Haze/include/
+        Haze/include/Core/
+        Haze/include/Audio/
+        Haze/include/Graphics/
+        Haze/include/Physics/)
+
+file(GLOB PROJECT_HEADERS Haze/include/*.hpp
+        Haze/include/Core/*.hpp
+        Haze/include/Audio/*.hpp
+        Haze/include/Graphics/*.hpp
+        Haze/include/Physics/*.hpp)
+
+file(GLOB PROJECT_SOURCES Haze/src/*.cpp
+        Haze/src/Core/*.cpp
+        Haze/src/Audio/*.cpp
+        Haze/src/Graphics/*.cpp
+        Haze/src/Physics/*.cpp)
+
 file(GLOB PROJECT_SHADERS Haze/shader/*.comp
-                          Haze/shader/*.frag
-                          Haze/shader/*.geom
-                          Haze/shader/*.vert)
+        Haze/shader/*.frag
+        Haze/shader/*.geom
+        Haze/shader/*.vert)
+
+file(GLOB 3RDPARTY_SOURCES Haze/3rdparty/glad/src/glad.c)
 file(GLOB PROJECT_CONFIGS CMakeLists.txt
-                          Readme.md
-                         .gitattributes
-                         .gitignore
-                         .gitmodules)
+        README.md
+        .gitattributes
+        .gitignore
+        .gitmodules)
 
 source_group("Headers" FILES ${PROJECT_HEADERS})
 source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
-source_group("3rdpartys" FILES ${VENDORS_SOURCES})
+source_group("3rdpartys" FILES ${3RDPARTY_SOURCES})
 
 add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
-                               ${VENDORS_SOURCES})
+                               ${3RDPARTY_SOURCES})
 target_link_libraries(${PROJECT_NAME} assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${ALUT_LIBRARIES}
                       BulletDynamics BulletCollision LinearMath)
