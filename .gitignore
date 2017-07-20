@@ -1,1 +1,7 @@
 [Bb]uild/
+
+bin/
+
+Win32/
+
+Haze\.dir/

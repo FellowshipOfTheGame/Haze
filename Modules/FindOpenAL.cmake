@@ -67,6 +67,8 @@ find_path(OPENAL_INCLUDE_DIR al.h
   /opt/csw # Blastwave
   /opt
   [HKEY_LOCAL_MACHINE\\SOFTWARE\\Creative\ Labs\\OpenAL\ 1.1\ Software\ Development\ Kit\\1.00.0000;InstallDir]
+  [HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Creative\ Labs\\OpenAL\ 1.1\ Software\ Development\ Kit\\3.05;InstallDir]
+  "C:/Program Files\ (x86)/OpenAL\ 1.1\ SDK"
 )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -88,6 +90,7 @@ find_library(OPENAL_LIBRARY
   /opt/csw
   /opt
   [HKEY_LOCAL_MACHINE\\SOFTWARE\\Creative\ Labs\\OpenAL\ 1.1\ Software\ Development\ Kit\\1.00.0000;InstallDir]
+  [HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Creative\ Labs\\OpenAL\ 1.1\ Software\ Development\ Kit\\3.05;InstallDir]
 )
 
 unset(_OpenAL_ARCH_DIR)

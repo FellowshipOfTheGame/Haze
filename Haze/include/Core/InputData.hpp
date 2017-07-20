@@ -1,15 +1,37 @@
 #ifndef HAZE_INPUTDATA_HPP
 #define HAZE_INPUTDATA_HPP
 
+typedef struct
+{
 
-typedef WindowInputData struct WindowInputData;
+} WindowInputData;
 
-typedef KeyboardInputData struct KeyboardInputData;
 
-typedef MouseInputData struct MouseInputData;
+typedef struct
+{
 
-typedef JoystickInputData struct JoystickInputData;
+} KeyboardInputData;
 
-typedef InputData struct InputData;
+
+typedef struct
+{
+
+} MouseInputData;
+
+
+typedef struct
+{
+
+} JoystickInputData;
+
+
+typedef struct
+{
+
+	WindowInputData window;
+	KeyboardInputData keyboard;
+	MouseInputData mouse;
+	JoystickInputData joystick;
+} InputData;
 
 #endif //HAZE_INPUTDATA_HPP

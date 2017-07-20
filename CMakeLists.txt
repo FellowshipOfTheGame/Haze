@@ -21,13 +21,8 @@ option(BUILD_UNIT_TESTS OFF)
 add_subdirectory(Haze/3rdparty/bullet)
 
 find_package(OpenAL REQUIRED)
-find_package(ALUT REQUIRED)
 if(OPENAL_FOUND)
     message("OPENAL FOUND")
-endif()
-
-if(ALUT_FOUND)
-    message("ALUT FOUND")
 endif()
 
 if(MSVC)
