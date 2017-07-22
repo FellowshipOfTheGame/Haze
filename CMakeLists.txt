@@ -40,7 +40,7 @@ include_directories(Haze/3rdparty/assimp/include/
         Haze/3rdparty/glfw/include/
         Haze/3rdparty/glm/
         Haze/3rdparty/stb/
-        ${ALUT_INCLUDE_DIRS})
+        ${OPENAL_INCLUDE_DIR})
 
 include_directories(Haze/include/
         Haze/include/Core/
@@ -52,7 +52,8 @@ file(GLOB PROJECT_HEADERS Haze/include/*.hpp
         Haze/include/Core/*.hpp
         Haze/include/Audio/*.hpp
         Haze/include/Graphics/*.hpp
-        Haze/include/Physics/*.hpp)
+        Haze/include/Physics/*.hpp
+        Haze/include/Audio/dr_wav.h)
 
 file(GLOB PROJECT_SOURCES Haze/src/*.cpp
         Haze/src/Core/*.cpp
@@ -83,7 +84,7 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${3RDPARTY_SOURCES})
 target_link_libraries(${PROJECT_NAME} assimp glfw
-                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${ALUT_LIBRARIES}
+                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${OPENAL_LIBRARY}
                       BulletDynamics BulletCollision LinearMath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})

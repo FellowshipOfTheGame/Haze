@@ -1,5 +1,6 @@
-#include <iostream>
-#include <cstdlib>
+#ifndef HAZE_HPP
+#define HAZE_HPP
 
-#define WIDTH 800
-#define HEIGHT 600
+inline void err(int errn, const char* str);
+
+#endif // !HAZE_HPP

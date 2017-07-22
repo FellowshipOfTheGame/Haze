@@ -22,7 +22,6 @@ public:
     void createInput(GLFWwindow* window);
     void setCurrentWindow(GLFWwindow* window);
     Input* getInput();
-    void addInputCallback(ListenerType, ListenerCallback);
 
 };
 

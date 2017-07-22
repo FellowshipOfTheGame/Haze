@@ -25,7 +25,7 @@ typedef struct
 } JoystickInputData;
 
 
-typedef struct
+typedef union
 {
 
 	WindowInputData window;
