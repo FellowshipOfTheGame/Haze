@@ -48,18 +48,17 @@ include_directories(Haze/include/
         Haze/include/Graphics/
         Haze/include/Physics/)
 
-file(GLOB PROJECT_HEADERS Haze/include/*.hpp
-        Haze/include/Core/*.hpp
-        Haze/include/Audio/*.hpp
-        Haze/include/Graphics/*.hpp
-        Haze/include/Physics/*.hpp
-        Haze/include/Audio/dr_wav.h)
+file(GLOB PROJECT_HDR Haze/include/*.hpp)
+file(GLOB PROJECT_HDR_CORE Haze/include/Core/*.hpp)
+file(GLOB PROJECT_HDR_AUDIO Haze/include/Audio/*.hpp)
+file(GLOB PROJECT_HDR_PHYSICS Haze/include/Physics/*.hpp)
+file(GLOB PROJECT_HDR_GRAPHICS Haze/include/Graphics/*.hpp)
 
-file(GLOB PROJECT_SOURCES Haze/src/*.cpp
-        Haze/src/Core/*.cpp
-        Haze/src/Audio/*.cpp
-        Haze/src/Graphics/*.cpp
-        Haze/src/Physics/*.cpp)
+file(GLOB PROJECT_SRC Haze/src/*.cpp)
+file(GLOB PROJECT_SRC_CORE Haze/src/Core/*.cpp)
+file(GLOB PROJECT_SRC_AUDIO Haze/src/Audio/*.cpp)
+file(GLOB PROJECT_SRC_PHYSICS Haze/src/Physics/*.cpp)
+file(GLOB PROJECT_SRC_GRAPHICS Haze/src/Graphics/*.cpp)
 
 file(GLOB PROJECT_SHADERS Haze/shader/*.comp
         Haze/shader/*.frag
@@ -73,16 +72,35 @@ file(GLOB PROJECT_CONFIGS CMakeLists.txt
         .gitignore
         .gitmodules)
 
-source_group("Headers" FILES ${PROJECT_HEADERS})
+source_group("Headers"  FILES ${PROJECT_HDR})
+source_group("Headers\\Core" FILES ${PROJECT_HDR_CORE})
+source_group("Headers\\Audio" FILES ${PROJECT_HDR_AUDIO})
+source_group("Headers\\Physics" FILES ${PROJECT_HDR_PHYSICS})
+source_group("Headers\\Graphics" FILES ${PROJECT_HDR_GRAPHICS})
+
+file(GLOB PROJECT_HEADERS ${PROJECT_HDR} ${PROJECT_HDR_CORE} ${PROJECT_HDR_AUDIO} ${PROJECT_HDR_PHYSICS} ${PROJECT_HDR_GRAPHICS})
+
+source_group("Sources" FILES ${PROJECT_SRC})
+source_group("Sources\\Core" FILES ${PROJECT_SRC_CORE})
+source_group("Sources\\Audio" FILES ${PROJECT_SRC_AUDIO})
+source_group("Sources\\Physics" FILES ${PROJECT_SRC_PHYSICS})
+source_group("Sources\\Graphics" FILES ${PROJECT_SRC_GRAPHICS})
+
+file(GLOB PROJECT_SOURCES ${PROJECT_SRC} ${PROJECT_SRC_CORE} ${PROJECT_SRC_AUDIO} ${PROJECT_SRC_PHYSICS} ${PROJECT_SRC_GRAPHICS})
+
+file(GLOB THIRD_SRCS ${GL_SRCS} ${GLM_SRCS} ${STB_SRCS})
+
 source_group("Shaders" FILES ${PROJECT_SHADERS})
-source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("3rdpartys" FILES ${3RDPARTY_SOURCES})
 
 add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
-                               ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
-                               ${3RDPARTY_SOURCES})
+add_executable( ${PROJECT_NAME}
+                ${PROJECT_SOURCES}
+                ${PROJECT_HEADERS}
+                ${PROJECT_SHADERS}
+                ${PROJECT_CONFIGS}
+                ${3RDPARTY_SOURCES})
 target_link_libraries(${PROJECT_NAME} assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${OPENAL_LIBRARY}
                       BulletDynamics BulletCollision LinearMath)
