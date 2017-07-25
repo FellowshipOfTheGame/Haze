@@ -1,7 +1,13 @@
 #include "Graphics.hpp"
 
-GLFWwindow* graphicsInit()
+bool Graphics::init = false;
+bool Graphics::initGL = false;
+
+void Graphics::initialize()
 {
+	if (init)
+		return;
+
 	if (!glfwInit())
 		err(-1, "GLFW init error");
 
@@ -9,23 +15,28 @@ GLFWwindow* graphicsInit()
 
 	glfwConfig();
 
-	GLFWwindow* window = NULL;
-	window = glfwCreateWindow(WIDTH, HEIGHT, u8"Haze Engine", NULL, NULL);
+	init = true;
+}
 
-	if(!window)
-		err(-1, "GLFW window creation error");
-
-	glfwMakeContextCurrent(window);
+void Graphics::loadGL()
+{
+	if (!init || initGL)
+		return;
 
 	if (!gladLoadGL())
 		err(-1, "GLAD init error");
 
-	return window;
+	std::cout << "OpenGL version major: " << GLVersion.major << " minor:" << GLVersion.minor;
+
+	initGL = true;
 }
 
-void graphicsDestroy(GLFWwindow* window)
+void Graphics::terminate()
 {
+	if (!init)
+		return;
 
-	glfwDestroyWindow(window);
 	glfwTerminate();
+
+	init = false;
 }

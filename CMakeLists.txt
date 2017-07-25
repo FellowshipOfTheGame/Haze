@@ -20,9 +20,9 @@ option(BUILD_OPENGL3_DEMOS OFF)
 option(BUILD_UNIT_TESTS OFF)
 add_subdirectory(Haze/3rdparty/bullet)
 
-find_package(OpenAL REQUIRED)
-if(OPENAL_FOUND)
-    message("OPENAL FOUND")
+find_package(FMOD REQUIRED)
+if(FMOD_FOUND)
+    message("FMOD found")
 endif()
 
 if(MSVC)
@@ -40,7 +40,7 @@ include_directories(Haze/3rdparty/assimp/include/
         Haze/3rdparty/glfw/include/
         Haze/3rdparty/glm/
         Haze/3rdparty/stb/
-        ${OPENAL_INCLUDE_DIR})
+        ${FMOD_INCLUDE_DIRS})
 
 include_directories(Haze/include/
         Haze/include/Core/
@@ -78,6 +78,13 @@ source_group("Headers\\Audio" FILES ${PROJECT_HDR_AUDIO})
 source_group("Headers\\Physics" FILES ${PROJECT_HDR_PHYSICS})
 source_group("Headers\\Graphics" FILES ${PROJECT_HDR_GRAPHICS})
 
+
+file(GLOB_RECURSE 3RDPARTY_HDR_GLM Haze/3rdparty/glm/)
+file(GLOB_RECURSE 3RDPARTY_HDR_STB Haze/3rdparty/stb/)
+
+source_group("Headers\\glm" FILES ${3RDPARTY_HDR_GLM})
+source_group("Headers\\stb" FILES ${3RDPARTY_HDR_STB})
+
 file(GLOB PROJECT_HEADERS ${PROJECT_HDR} ${PROJECT_HDR_CORE} ${PROJECT_HDR_AUDIO} ${PROJECT_HDR_PHYSICS} ${PROJECT_HDR_GRAPHICS})
 
 source_group("Sources" FILES ${PROJECT_SRC})
@@ -101,8 +108,9 @@ add_executable( ${PROJECT_NAME}
                 ${PROJECT_SHADERS}
                 ${PROJECT_CONFIGS}
                 ${3RDPARTY_SOURCES})
+
 target_link_libraries(${PROJECT_NAME} assimp glfw
-                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES} ${OPENAL_LIBRARY}
+                      ${GLAD_LIBRARIES} ${FMOD_LIBRARIES}
                       BulletDynamics BulletCollision LinearMath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})

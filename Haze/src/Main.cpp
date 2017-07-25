@@ -1,56 +1,30 @@
-#include <iostream>
-#include <cstdlib>
-
-#include "Graphics.hpp"
 #include "Haze.hpp"
 
-#include "glad/glad.h"
-#include "GLFW/glfw3.h"
+#include "InputData.hpp"
+#include "Audio.hpp"
+#include "Physics.hpp"
+#include "Graphics.hpp"
 
-#include "al.h"
-#include "alc.h"
 
-
-inline void err(int errn, const char* str)
-{
-	std::cout << str << std::endl;
-	exit(errn);
-}
 
 int main(int argc, char** argv)
 {
-	ALCdevice *dev = NULL;
-	ALCcontext *ctx = NULL;
+	
+	Audio::initialize();
+	Physics::initialize();
+	Graphics::initialize();
 
+    //while(!glfwWindowShouldClose(window))
+    //{
+    //    glfwPollEvents();
+    //    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    //    glClear(GL_COLOR_BUFFER_BIT);
+    //    glfwSwapBuffers(window);
+    //}
 
-	dev = alcOpenDevice(NULL);
-	if (!dev)
-		err(-1, "Could not open device");
-	ctx = alcCreateContext(dev, NULL);
-	if (!ctx)
-		err(-1, "Could not create context");
-
-	std::cout << "Opened device: " << alcGetString(dev, ALC_DEVICE_SPECIFIER) << std::endl;
-
-	alcMakeContextCurrent(ctx);
-
-	GLFWwindow* window = graphicsInit();
-	std::cout << "OpenGL version major: " << GLVersion.major << " minor:" << GLVersion.minor;
-
-    while(!glfwWindowShouldClose(window))
-    {
-        glfwPollEvents();
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glfwSwapBuffers(window);
-    }
-
-	graphicsDestroy(window);
-
-	alcMakeContextCurrent(NULL);
-	alcDestroyContext(ctx);
-	alcCloseDevice(dev);
-
+	Graphics::terminate();
+	Physics::terminate();
+	Audio::terminate();
 
     return EXIT_SUCCESS;
 }

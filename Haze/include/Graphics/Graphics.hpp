@@ -5,11 +5,18 @@
 #include "GLFW\glfw3.h"
 #include "glad/glad.h"
 #include "Haze.hpp"
+#include <iostream>
 
-GLFWwindow* graphicsInit();
-
-void graphicsDestroy(GLFWwindow* window);
-
+class Graphics
+{
+	static bool init;
+	static bool initGL;
+	Graphics();
+public:
+	static void initialize();
+	static void terminate();
+	static void loadGL();
+};
 
 
 //glfwSetWindowCloseCallback(window, window_close_callback);
