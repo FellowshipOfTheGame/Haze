@@ -1,5 +1,4 @@
 #include "Haze.hpp"
-#include <iostream>
 
 void err(int errn, const char* str)
 {

@@ -1,34 +1,20 @@
 #include "Graphics.hpp"
 
 bool Graphics::init = false;
-bool Graphics::initGL = false;
 
-void Graphics::initialize()
+void Graphics::initialize(Window* window)
 {
-	if (init)
+	if (init || !Window::loaded() || window == nullptr)
 		return;
 
-	if (!glfwInit())
-		err(-1, "GLFW init error");
-
-	glfwSetErrorCallback(err);
-
-	glfwConfig();
-
-	init = true;
-}
-
-void Graphics::loadGL()
-{
-	if (!init || initGL)
-		return;
+	window->setContext();
 
 	if (!gladLoadGL())
 		err(-1, "GLAD init error");
 
 	std::cout << "OpenGL version major: " << GLVersion.major << " minor:" << GLVersion.minor;
 
-	initGL = true;
+	init = true;
 }
 
 void Graphics::terminate()
@@ -36,7 +22,8 @@ void Graphics::terminate()
 	if (!init)
 		return;
 
-	glfwTerminate();
+	if (Window::loaded())
+		Window::terminate();
 
 	init = false;
 }

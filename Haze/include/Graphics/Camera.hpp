@@ -3,7 +3,6 @@
 
 #include "Haze.hpp"
 #include "Graphics.hpp"
-#include "GLFW/glfw3.h"
-#include "assimp/Importer.hpp"
+#include <GLFW/glfw3.h>
 
 #endif //!HAZE_WINDOW_HPP

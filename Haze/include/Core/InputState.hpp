@@ -52,5 +52,4 @@ typedef struct
 	MouseState mouse;
 } InputState;
 
-
 #endif //HAZE_INPUTDATA_HPP
