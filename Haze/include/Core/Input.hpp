@@ -1,6 +1,8 @@
 #ifndef HAZE_INPUT_HPP
 #define HAZE_INPUT_HPP
 
+#include <map>
+#include <mutex>
 #include <string>
 #include "GLFW/glfw3.h"
 #include "InputState.hpp"
@@ -8,14 +10,17 @@
 
 class Input
 {
-	InputState *state, *buffer;
+	GLFWwindow* window;
 
 	Input();
 public:
 	Input(GLFWwindow* window);
+	~Input();
 
-	void poll();
+	InputState *state;
 	InputState* getState();
+	void poll();
+	void clear();
 };
 
 #endif //HAZE_INPUT_HPP

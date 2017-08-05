@@ -44,6 +44,8 @@ Window::Window(int width, int height, Window* parent)
 
 	if (!handler)
 		err(-1, "GLFW window creation error");
+	
+	input = new Input(handler);
 }
 
 Window::~Window()
@@ -55,6 +57,11 @@ Window::~Window()
 void Window::update()
 {
 	input->poll();
+}
+
+void Window::flush()
+{
+	input->clear();
 }
 
 InputState* Window::getInput()

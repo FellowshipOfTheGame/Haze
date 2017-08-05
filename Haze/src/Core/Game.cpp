@@ -12,9 +12,10 @@ void Game::start()
 {
 	while (window->running())
 	{
-		float dt;
+		float dt = .0f;
 		window->update();
 		update(window->getInput(), dt);
+		window->flush();
 		draw(dt);
 	}
 }

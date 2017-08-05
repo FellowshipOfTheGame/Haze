@@ -7,10 +7,15 @@
 #define HAZE_MOUSE_BUTTON_SIZE GLFW_MOUSE_BUTTON_LAST + 1
 #define HAZE_JOYSTICK_SIZE GLFW_JOYSTICK_LAST + 1
 
-#define KEY_NONE 0
-#define KEY_PRESSED 1
-#define KEY_RELEASED 2
-#define KEY_REPEAT 3
+#define HAZE_IN_NONE 0
+#define HAZE_IN_PRESS 1
+#define HAZE_IN_RELEASE 2
+#define HAZE_IN_REPEAT 3
+
+#define HAZE_IN_SHIFT GLFW_MOD_SHIFT
+#define HAZE_IN_ALT GLFW_MOD_ALT
+#define HAZE_IN_SUPER GLFW_MOD_SUPER
+#define HAZE_IN_CONTROL GLFW_MOD_CONTROL
 
 
 typedef struct
@@ -29,6 +34,7 @@ typedef struct
 {
 	bool entered;
 	bool left;
+	bool moved;
 } MouseInput;
 
 typedef struct
@@ -47,9 +53,12 @@ typedef struct
 typedef struct
 {
 	KeyboardInput key[HAZE_KEY_SIZE];
-	MouseButtonInput mouseButton[HAZE_MOUSE_BUTTON_SIZE];
+
 	JoystickInput joystick[HAZE_JOYSTICK_SIZE];
+
 	MouseState mouse;
+	MouseInput mouseEvents;
+	MouseButtonInput mouseButton[HAZE_MOUSE_BUTTON_SIZE];
 } InputState;
 
 #endif //HAZE_INPUTDATA_HPP

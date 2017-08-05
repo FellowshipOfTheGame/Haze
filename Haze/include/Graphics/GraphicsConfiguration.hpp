@@ -1,8 +1,6 @@
 #ifndef HAZE_GRAPHICS_CONFIGURATION_HPP
 #define HAZE_GRAPHICS_CONFIGURATION_HPP
 
-#include "GraphicsConfiguration.hpp"
-
 #define OPENGL_MAJOR 3
 #define OPENGL_MINOR 3
 

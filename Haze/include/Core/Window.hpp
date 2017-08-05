@@ -29,6 +29,7 @@ public:
 	bool running();
 	void setContext();
 
+	void flush();
 	void update();
 	InputState* getInput();
 };
