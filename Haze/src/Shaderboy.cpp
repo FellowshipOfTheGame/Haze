@@ -17,3 +17,5 @@ void Shaderboy::draw(float interpolation)
 {
 	std::cout << "Draw";
 }
+
+

@@ -53,6 +53,7 @@ file(GLOB PROJECT_HDR_CORE Haze/include/Core/*.hpp)
 file(GLOB PROJECT_HDR_AUDIO Haze/include/Audio/*.hpp)
 file(GLOB PROJECT_HDR_PHYSICS Haze/include/Physics/*.hpp)
 file(GLOB PROJECT_HDR_GRAPHICS Haze/include/Graphics/*.hpp)
+file(GLOB PROJECT_HDR_LEARNOGL Haze/include/LearnOpenGL/*.h)
 
 file(GLOB PROJECT_SRC Haze/src/*.cpp)
 file(GLOB PROJECT_SRC_CORE Haze/src/Core/*.cpp)
@@ -77,6 +78,7 @@ source_group("Headers\\Core" FILES ${PROJECT_HDR_CORE})
 source_group("Headers\\Audio" FILES ${PROJECT_HDR_AUDIO})
 source_group("Headers\\Physics" FILES ${PROJECT_HDR_PHYSICS})
 source_group("Headers\\Graphics" FILES ${PROJECT_HDR_GRAPHICS})
+source_group("Headers\\LearnOpenGL" FILES ${PROJECT_HDR_LEARNOGL})
 
 
 file(GLOB_RECURSE 3RDPARTY_HDR_GLM Haze/3rdparty/glm/)
@@ -85,7 +87,7 @@ file(GLOB_RECURSE 3RDPARTY_HDR_STB Haze/3rdparty/stb/)
 source_group("Headers\\glm" FILES ${3RDPARTY_HDR_GLM})
 source_group("Headers\\stb" FILES ${3RDPARTY_HDR_STB})
 
-file(GLOB PROJECT_HEADERS ${PROJECT_HDR} ${PROJECT_HDR_CORE} ${PROJECT_HDR_AUDIO} ${PROJECT_HDR_PHYSICS} ${PROJECT_HDR_GRAPHICS})
+file(GLOB PROJECT_HEADERS ${PROJECT_HDR} ${PROJECT_HDR_CORE} ${PROJECT_HDR_AUDIO} ${PROJECT_HDR_PHYSICS} ${PROJECT_HDR_GRAPHICS} ${PROJECT_HDR_LEARNOGL})
 
 source_group("Sources" FILES ${PROJECT_SRC})
 source_group("Sources\\Core" FILES ${PROJECT_SRC_CORE})

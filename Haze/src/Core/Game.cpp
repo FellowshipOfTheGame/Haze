@@ -1,6 +1,6 @@
 #include "Game.hpp"
 
-Game::Game(const char* name, int width, int height) : window(new Window(width, height, nullptr)) { }
+Game::Game(const char* name, int width, int height) : window(new Window(width, height, name, nullptr)) { }
 
 Game::~Game()
 {

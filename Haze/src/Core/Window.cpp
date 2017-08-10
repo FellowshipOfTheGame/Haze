@@ -32,15 +32,15 @@ void Window::terminate()
 	init = false;
 }
 
-Window::Window(int width, int height, Window* parent)
+Window::Window(int width, int height, const char* name, Window* parent)
 {
 	if (!Window::init)
 		Window::initialize();
 
 	if(parent == NULL)
-		handler = glfwCreateWindow(width, height, u8"Haze Engine", NULL, NULL);
+		handler = glfwCreateWindow(width, height, name, NULL, NULL);
 	else
-		handler = glfwCreateWindow(width, height, u8"Haze Engine", NULL, parent->handler);
+		handler = glfwCreateWindow(width, height, name, NULL, parent->handler);
 
 	if (!handler)
 		err(-1, "GLFW window creation error");

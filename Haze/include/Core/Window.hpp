@@ -18,7 +18,7 @@ private:
 
 	Window();
 public:
-	Window(int width, int height, Window* parent);
+	Window(int width, int height, const char* name, Window* parent);
 	~Window();
 
 	static bool loaded();
