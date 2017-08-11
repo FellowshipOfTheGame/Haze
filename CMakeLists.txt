@@ -61,12 +61,10 @@ file(GLOB PROJECT_SRC_AUDIO Haze/src/Audio/*.cpp)
 file(GLOB PROJECT_SRC_PHYSICS Haze/src/Physics/*.cpp)
 file(GLOB PROJECT_SRC_GRAPHICS Haze/src/Graphics/*.cpp)
 
-file(GLOB PROJECT_SHADERS Haze/shader/*.comp
-        Haze/shader/*.frag
-        Haze/shader/*.geom
-        Haze/shader/*.vert)
+file(GLOB PROJECT_SHADERS Haze/shader/*.glsl)
 
-file(GLOB 3RDPARTY_SOURCES Haze/3rdparty/glad/src/glad.c)
+file(GLOB 3RDPARTY_SOURCES Haze/3rdparty/glad/src/glad.c
+        Haze/3rdparty/stb_image.c)
 file(GLOB PROJECT_CONFIGS CMakeLists.txt
         README.md
         .gitattributes
