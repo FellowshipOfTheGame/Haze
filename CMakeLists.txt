@@ -20,10 +20,10 @@ option(BUILD_OPENGL3_DEMOS OFF)
 option(BUILD_UNIT_TESTS OFF)
 add_subdirectory(Haze/3rdparty/bullet)
 
-find_package(FMOD REQUIRED)
-if(FMOD_FOUND)
-    message("FMOD found")
-endif()
+#find_package(FMOD REQUIRED)
+#if(FMOD_FOUND)
+#    message("FMOD found")
+#endif()
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
@@ -40,24 +40,26 @@ include_directories(Haze/3rdparty/assimp/include/
         Haze/3rdparty/glfw/include/
         Haze/3rdparty/glm/
         Haze/3rdparty/stb/
-        ${FMOD_INCLUDE_DIRS})
+        #${FMOD_INCLUDE_DIRS}
+        )
 
 include_directories(Haze/include/
         Haze/include/Core/
-        Haze/include/Audio/
+        #Haze/include/Audio/
         Haze/include/Graphics/
-        Haze/include/Physics/)
+        Haze/include/Physics/
+        )
 
 file(GLOB PROJECT_HDR Haze/include/*.hpp)
 file(GLOB PROJECT_HDR_CORE Haze/include/Core/*.hpp)
-file(GLOB PROJECT_HDR_AUDIO Haze/include/Audio/*.hpp)
+#file(GLOB PROJECT_HDR_AUDIO Haze/include/Audio/*.hpp)
 file(GLOB PROJECT_HDR_PHYSICS Haze/include/Physics/*.hpp)
 file(GLOB PROJECT_HDR_GRAPHICS Haze/include/Graphics/*.hpp)
 file(GLOB PROJECT_HDR_LEARNOGL Haze/include/LearnOpenGL/*.h)
 
 file(GLOB PROJECT_SRC Haze/src/*.cpp)
 file(GLOB PROJECT_SRC_CORE Haze/src/Core/*.cpp)
-file(GLOB PROJECT_SRC_AUDIO Haze/src/Audio/*.cpp)
+#file(GLOB PROJECT_SRC_AUDIO Haze/src/Audio/*.cpp)
 file(GLOB PROJECT_SRC_PHYSICS Haze/src/Physics/*.cpp)
 file(GLOB PROJECT_SRC_GRAPHICS Haze/src/Graphics/*.cpp)
 
@@ -73,7 +75,7 @@ file(GLOB PROJECT_CONFIGS CMakeLists.txt
 
 source_group("Headers"  FILES ${PROJECT_HDR})
 source_group("Headers\\Core" FILES ${PROJECT_HDR_CORE})
-source_group("Headers\\Audio" FILES ${PROJECT_HDR_AUDIO})
+#source_group("Headers\\Audio" FILES ${PROJECT_HDR_AUDIO})
 source_group("Headers\\Physics" FILES ${PROJECT_HDR_PHYSICS})
 source_group("Headers\\Graphics" FILES ${PROJECT_HDR_GRAPHICS})
 source_group("Headers\\LearnOpenGL" FILES ${PROJECT_HDR_LEARNOGL})
@@ -89,7 +91,7 @@ file(GLOB PROJECT_HEADERS ${PROJECT_HDR} ${PROJECT_HDR_CORE} ${PROJECT_HDR_AUDIO
 
 source_group("Sources" FILES ${PROJECT_SRC})
 source_group("Sources\\Core" FILES ${PROJECT_SRC_CORE})
-source_group("Sources\\Audio" FILES ${PROJECT_SRC_AUDIO})
+#source_group("Sources\\Audio" FILES ${PROJECT_SRC_AUDIO})
 source_group("Sources\\Physics" FILES ${PROJECT_SRC_PHYSICS})
 source_group("Sources\\Graphics" FILES ${PROJECT_SRC_GRAPHICS})
 
@@ -110,7 +112,7 @@ add_executable( ${PROJECT_NAME}
                 ${3RDPARTY_SOURCES})
 
 target_link_libraries(${PROJECT_NAME} assimp glfw
-                      ${GLAD_LIBRARIES} ${FMOD_LIBRARIES}
+                      ${GLAD_LIBRARIES} #${FMOD_LIBRARIES}
                       BulletDynamics BulletCollision LinearMath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})

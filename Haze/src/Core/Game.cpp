@@ -23,14 +23,14 @@ void Game::start()
 
 void Game::initialize()
 {
-	Audio::initialize();
+	//Audio::initialize();
 	Physics::initialize();
 	Graphics::initialize(window);
 }
 
 void Game::terminate()
 {
-	Audio::terminate();
+	//Audio::terminate();
 	Physics::terminate();
 	Graphics::terminate();
 }

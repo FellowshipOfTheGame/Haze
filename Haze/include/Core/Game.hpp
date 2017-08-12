@@ -1,7 +1,7 @@
 #ifndef HAZE_GAME_HPP
 #define HAZE_GAME_HPP
 
-#include "Audio.hpp"
+//#include "Audio.hpp"
 #include "Physics.hpp"
 #include "Graphics.hpp"
 
@@ -12,7 +12,7 @@
 
 class Game
 {
-	Audio* audio;
+	//Audio* audio;
 	Physics* physics;
 	Graphics* graphics;
 
