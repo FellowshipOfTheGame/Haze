@@ -1,7 +1,7 @@
 #ifndef HAZE_INPUTDATA_HPP
 #define HAZE_INPUTDATA_HPP
 
-#include "GLFW\glfw3.h"
+#include "GLFW/glfw3.h"
 
 #define HAZE_KEY_SIZE GLFW_KEY_LAST + 1
 #define HAZE_MOUSE_BUTTON_SIZE GLFW_MOUSE_BUTTON_LAST + 1

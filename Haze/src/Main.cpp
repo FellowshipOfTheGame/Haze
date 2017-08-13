@@ -1,14 +1,14 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
-#include <learnopengl/filesystem.h>
-#include <learnopengl/shader.h>
-#include <learnopengl/camera.h>
-#include <learnopengl/model.h>
+#include "LearnOpenGL/filesystem.h"
+#include "LearnOpenGL/shader.h"
+#include "LearnOpenGL/camera.h"
+#include "LearnOpenGL/model.h"
 
 #include <iostream>
 
@@ -16,6 +16,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
+void errorHandler(int num, const char* message);
 
 // Settings
 unsigned int SCR_WIDTH = 800;
@@ -40,11 +41,19 @@ Shader* nanosuitShader;
 Shader* screenShader;
 Model* nanosuit;
 
+bool geometry = false;
+
 int main()
 {
+
 	// glfw: initialize and configure
 	// ------------------------------
-	glfwInit();
+	if (glfwInit() == GLFW_FALSE)
+	{
+		std::cout << "Error initializing GLFW" << std::endl;
+		return -1;
+	}
+	glfwSetErrorCallback(errorHandler);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -79,8 +88,8 @@ int main()
 	}
 
 
-	nanosuitShader = new Shader("vertex.glsl", "fragment.glsl" , "geometry.glsl");
-	screenShader = new Shader("screen_vertex.glsl", "screen_fragment.glsl");
+	nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl");//, "shader/geometry.glsl");
+	screenShader = new Shader("shader/screen_vertex.glsl", "shader/screen_fragment.glsl");
 	nanosuit = new Model("resources/objects/nanosuit/nanosuit.obj");
 
 
@@ -166,9 +175,10 @@ int main()
 
 		// render the loaded model
 		glm::mat4 model;
-		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
+		//model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+		//model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
 		nanosuitShader->setMat4("model", model);
+		
 		nanosuit->Draw(nanosuitShader);
 
 		nanosuitShader->setFloat("time", (float)glfwGetTime());
@@ -225,12 +235,25 @@ void processInput(GLFWwindow *window)
 		camera.ProcessKeyboard(DOWN, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		camera.ProcessKeyboard(UP, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS)
 	{
 		delete nanosuitShader;
+		if (geometry)
+			nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl");
+		else
+			nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl", "shader/geometry.glsl");
+		geometry = !geometry;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
+	{
+		delete nanosuitShader;
+		if (geometry)
+			nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl");
+		else
+			nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl", "shader/geometry.glsl");
+
 		delete screenShader;
-		nanosuitShader = new Shader("vertex.glsl", "fragment.glsl", "geometry.glsl");
-		screenShader = new Shader("screen_vertex.glsl", "screen_fragment.glsl");
+		screenShader = new Shader("shader/screen_vertex.glsl", "shader/screen_fragment.glsl");
 	}
 }
 
@@ -293,4 +316,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(yoffset);
+}
+
+
+void errorHandler(int num, const char* message)
+{
+	std::cout << "Error " << num << ": " << message << std::endl;
 }
