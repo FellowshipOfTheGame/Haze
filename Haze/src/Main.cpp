@@ -12,23 +12,25 @@
 
 #include <iostream>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+// Callbacks
+void frambufferSizeCallback(GLFWwindow* window, int width, int height);
+void mouseCallback(GLFWwindow* window, double xpos, double ypos);
+void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 void errorHandler(int num, const char* message);
 
 // Settings
-unsigned int SCR_WIDTH = 800;
-unsigned int SCR_HEIGHT = 600;
+unsigned int screenWidth = 800;
+unsigned int screenHeight = 600;
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
+float lastX = screenWidth / 2.0f;
+float lastY = screenHeight / 2.0f;
 bool firstMouse = true;
 
-// timing
+// Timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
@@ -37,86 +39,98 @@ unsigned int rbo;
 unsigned int framebuffer;
 unsigned int textureColorbuffer;
 
+// Shader programs
 Shader* nanosuitShader;
 Shader* screenShader;
+// Nanosuit model
 Model* nanosuit;
 
+// Using geometry shader?
 bool geometry = false;
+
+// Using post processing?
+bool postProcessing = false;
+
+// Model scale and rotation
+glm::vec3 scale(1.0f, 1.0f, 1.0f);
+glm::vec3 up(0.0f, 0.0f, 1.0f);
+glm::vec3 fwd(1.0f, 0.0f, 0.0f);
+float yaw = 0.0f, row = 0.0f;
 
 int main()
 {
-
-	// glfw: initialize and configure
-	// ------------------------------
+	// Initialize glfw and check for errors
 	if (glfwInit() == GLFW_FALSE)
 	{
 		std::cout << "Error initializing GLFW" << std::endl;
 		return -1;
 	}
+	// Set error handler (just print)
 	glfwSetErrorCallback(errorHandler);
+
+	// OpenGL version is 3.3 Core Profile
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-#ifdef __APPLE__
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
-#endif
-
-														 // glfw window creation
-														 // --------------------
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Introduction to GLSL", NULL, NULL);
+	// Create window and check if there is no error
+	GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "Introduction to GLSL", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
-	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
 
-	// tell GLFW to capture our mouse
+	// Set OpenGL context to current
+	glfwMakeContextCurrent(window);
+
+	// Attach callbacks to window input
+	glfwSetFramebufferSizeCallback(window, frambufferSizeCallback);
+	glfwSetKeyCallback(window, keyboardCallback);
+	glfwSetCursorPosCallback(window, mouseCallback);
+	glfwSetScrollCallback(window, scrollCallback);
+
+	// Hide mouse
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	// glad: load all OpenGL function pointers
-	// ---------------------------------------
+	// Load opengl functions and check for errors
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
 
+	// Create shaders (vertex and fragment) and load model (nanosuit)
+	nanosuitShader = new Shader("../Haze/shader/vertex.glsl", "../Haze/shader/fragment.glsl");
+	screenShader = new Shader("../Haze/shader/screen_vertex.glsl", "../Haze/shader/screen_fragment.glsl");
+	nanosuit = new Model("../Haze/resources/objects/nanosuit/nanosuit.obj");
 
-	nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl");//, "shader/geometry.glsl");
-	screenShader = new Shader("shader/screen_vertex.glsl", "shader/screen_fragment.glsl");
-	nanosuit = new Model("resources/objects/nanosuit/nanosuit.obj");
-
-
-	// Generate Framebuffer
+	// Generate framebuffer
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-	// Generate Texture for framebuffer
+	// Generate texture for framebuffer
 	glGenTextures(1, &textureColorbuffer);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
 
-	// Generate Render bufffer
+	// Generate render bufffer
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
-																								  // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	// Check if framebuffer status is ready, unbind
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-							 // positions   // texCoords
+	// Quad for framebuffer output (full screen)
+	float quadVertices[] = {
 		-1.0f,  1.0f,  0.0f, 1.0f,
 		-1.0f, -1.0f,  0.0f, 0.0f,
 		1.0f, -1.0f,  1.0f, 0.0f,
@@ -126,6 +140,7 @@ int main()
 		1.0f,  1.0f,  1.0f, 1.0f
 	};
 
+	// Create quad objects
 	unsigned int quadVAO, quadVBO;
 	glGenVertexArrays(1, &quadVAO);
 	glGenBuffers(1, &quadVBO);
@@ -137,87 +152,98 @@ int main()
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
-	// draw in wireframe
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	// render loop
-	// -----------
+	// Loop
 	while (!glfwWindowShouldClose(window))
 	{
-		// per-frame time logic
-		// --------------------
+		// Elapsed time
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		// input
-		// -----
+		// Process input (keyboard)
 		processInput(window);
 
-		// Bind framebuffer texture and enable depth test
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		// Bind framebuffer texture if using post processing
+		if(postProcessing)
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		else
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glEnable(GL_DEPTH_TEST);
 
-
-		// render
-		// ------
-		glClearColor(0.00f, 0.05f, 0.15f, 1.0f);
+		// Clear framebuffer buffer
+		glClearColor(0.00f, 0.2f, 0.4f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// don't forget to enable shader before setting uniforms
 		nanosuitShader->use();
 
 		// view/projection transformations
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 		glm::mat4 view = camera.GetViewMatrix();
-		nanosuitShader->setMat4("projection", projection);
-		nanosuitShader->setMat4("view", view);
-
-		// render the loaded model
 		glm::mat4 model;
-		//model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-		//model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
-		nanosuitShader->setMat4("model", model);
+
+		model = glm::rotate(model, yaw, up);
+		model = glm::rotate(model, row, fwd);
+		model = glm::translate(model, glm::vec3(0.0f, -8.75f, 0.0f) * scale);
+		model = glm::scale(model, scale);
+
+		// Set MVP matrixes and normal matrix
+		nanosuitShader->setMat4("Projection", projection);
+		nanosuitShader->setMat4("View", view);
+		nanosuitShader->setMat4("Model", model);
+		nanosuitShader->setMat4("Normal", glm::transpose(glm::inverse(model)));
+
+		// Mouse position
+		double mousex, mousey;
+		glfwGetCursorPos(window, &mousex, &mousey);
+
+		// Set auxiliar variables for cool stuff
+		nanosuitShader->setFloat("Time", (float)glfwGetTime());
+		nanosuitShader->setVec2("Mouse", glm::vec2((float)mousex, (float)mousey));
+		nanosuitShader->setVec2("Resolution", glm::vec2(screenWidth, screenHeight));
 		
 		nanosuit->Draw(nanosuitShader);
 
-		nanosuitShader->setFloat("time", (float)glfwGetTime());
+		if (postProcessing)
+		{
+			// Bind to scene and disable depth
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDisable(GL_DEPTH_TEST);
 
+			// Clear scene (useless clear)
+			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
 
-		// Bind to scene and disable depth
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDisable(GL_DEPTH_TEST);
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
-		glClear(GL_COLOR_BUFFER_BIT);
+			// Bind texture to shader and use program
+			screenShader->setInt("Framebuffer", 0);
+			screenShader->use();
 
-		screenShader->setInt("screenTexture", 0);
-		screenShader->use();
-		glBindVertexArray(quadVAO);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);	// use the color attachment texture as the texture of the quad plane
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+			//Bind quad and draw texture
+			glBindVertexArray(quadVAO);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
 
-		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-		// -------------------------------------------------------------------------------
+		// Swap buffers and poll events
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
+	// Delete all things and terminate
 	glDeleteTextures(1, &textureColorbuffer);
+	glDeleteFramebuffers(1, &framebuffer);
 	glDeleteRenderbuffers(1, &rbo);
+	glDeleteBuffers(1, &quadVAO);
+	glDeleteBuffers(1, &quadVBO);
 
 	delete nanosuitShader;
 	delete screenShader;
 	delete nanosuit;
 
-	// glfw: terminate, clearing all previously allocated GLFW resources.
-	// ------------------------------------------------------------------
 	glfwTerminate();
 	return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -235,36 +261,51 @@ void processInput(GLFWwindow *window)
 		camera.ProcessKeyboard(DOWN, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		camera.ProcessKeyboard(UP, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS)
-	{
-		delete nanosuitShader;
-		if (geometry)
-			nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl");
-		else
-			nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl", "shader/geometry.glsl");
-		geometry = !geometry;
-	}
-	else if (glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
-	{
-		delete nanosuitShader;
-		if (geometry)
-			nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl");
-		else
-			nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl", "shader/geometry.glsl");
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+		yaw += 0.001f;
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+		yaw -= 0.001f;
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+		row += 0.001f;
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+		row -= 0.001f;
+}
 
-		delete screenShader;
-		screenShader = new Shader("shader/screen_vertex.glsl", "shader/screen_fragment.glsl");
+void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (action == GLFW_PRESS)
+	{
+		switch (key)
+		{
+		case GLFW_KEY_F2:
+			delete nanosuitShader;
+			if (geometry)
+				nanosuitShader = new Shader("../Haze/shader/vertex.glsl", "../Haze/shader/fragment.glsl");
+			else
+				nanosuitShader = new Shader("../Haze/shader/vertex.glsl", "../Haze/shader/fragment.glsl", "../Haze/shader/geometry.glsl");
+			geometry = !geometry;
+			break;
+		case GLFW_KEY_F3:
+			postProcessing = !postProcessing;
+			break;
+		case GLFW_KEY_F5:
+			delete nanosuitShader;
+			if (!geometry)
+				nanosuitShader = new Shader("../Haze/shader/vertex.glsl", "../Haze/shader/fragment.glsl");
+			else
+				nanosuitShader = new Shader("../Haze/shader/vertex.glsl", "../Haze/shader/fragment.glsl", "../Haze/shader/geometry.glsl");
+
+			delete screenShader;
+			screenShader = new Shader("../Haze/shader/screen_vertex.glsl", "../Haze/shader/screen_fragment.glsl");
+			break;
+		}
 	}
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void frambufferSizeCallback(GLFWwindow* window, int width, int height)
 {
-	SCR_WIDTH = width;
-	SCR_HEIGHT = height;
-	// make sure the viewport matches the new window dimensions; note that width and 
-	// height will be significantly larger than specified on retina displays.
+	screenWidth = width;
+	screenHeight = height;
 	glViewport(0, 0, width, height);
 
 	glDeleteTextures(1, &textureColorbuffer);
@@ -276,24 +317,23 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 	glGenTextures(1, &textureColorbuffer);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
 
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
-																								  // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+
+void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
 	if (firstMouse)
 	{
@@ -303,7 +343,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	}
 
 	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+	float yoffset = lastY - ypos;
 
 	lastX = xpos;
 	lastY = ypos;
@@ -311,11 +351,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	camera.ProcessMouseScroll(yoffset);
+	if (yoffset > 0.0)
+		scale *= 1.1f;
+	else
+		scale *= 0.9f;
 }
 
 
