@@ -1,6 +1,7 @@
 [Bb]uild/
 
 bin/
+cmake/
 
 Win32/
 
