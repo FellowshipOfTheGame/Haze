@@ -55,7 +55,9 @@ bool postProcessing = false;
 glm::vec3 scale(1.0f, 1.0f, 1.0f);
 glm::vec3 up(0.0f, 0.0f, 1.0f);
 glm::vec3 fwd(1.0f, 0.0f, 0.0f);
+
 float yaw = 0.0f, row = 0.0f;
+float yawVelocity = 3.14f, rowVelocity = 3.14f;
 
 int main()
 {
@@ -102,9 +104,9 @@ int main()
 	}
 
 	// Create shaders (vertex and fragment) and load model (nanosuit)
-	nanosuitShader = new Shader("../Haze/shader/vertex.glsl", "../Haze/shader/fragment.glsl");
-	screenShader = new Shader("../Haze/shader/screen_vertex.glsl", "../Haze/shader/screen_fragment.glsl");
-	nanosuit = new Model("../Haze/resources/objects/nanosuit/nanosuit.obj");
+	nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl");
+	screenShader = new Shader("shader/screen_vertex.glsl", "shader/screen_fragment.glsl");
+	nanosuit = new Model("resources/objects/nanosuit/nanosuit.obj");
 
 	// Generate framebuffer
 	glGenFramebuffers(1, &framebuffer);
@@ -262,13 +264,13 @@ void processInput(GLFWwindow *window)
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		camera.ProcessKeyboard(UP, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-		yaw += 0.001f;
+		yaw += yawVelocity * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-		yaw -= 0.001f;
+		yaw -= yawVelocity * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-		row += 0.001f;
+		row += rowVelocity * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-		row -= 0.001f;
+		row -= rowVelocity * deltaTime;
 }
 
 void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -280,9 +282,9 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
 		case GLFW_KEY_F2:
 			delete nanosuitShader;
 			if (geometry)
-				nanosuitShader = new Shader("../Haze/shader/vertex.glsl", "../Haze/shader/fragment.glsl");
+				nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl");
 			else
-				nanosuitShader = new Shader("../Haze/shader/vertex.glsl", "../Haze/shader/fragment.glsl", "../Haze/shader/geometry.glsl");
+				nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl", "shader/geometry.glsl");
 			geometry = !geometry;
 			break;
 		case GLFW_KEY_F3:
@@ -291,12 +293,12 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
 		case GLFW_KEY_F5:
 			delete nanosuitShader;
 			if (!geometry)
-				nanosuitShader = new Shader("../Haze/shader/vertex.glsl", "../Haze/shader/fragment.glsl");
+				nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl");
 			else
-				nanosuitShader = new Shader("../Haze/shader/vertex.glsl", "../Haze/shader/fragment.glsl", "../Haze/shader/geometry.glsl");
+				nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl", "shader/geometry.glsl");
 
 			delete screenShader;
-			screenShader = new Shader("../Haze/shader/screen_vertex.glsl", "../Haze/shader/screen_fragment.glsl");
+			screenShader = new Shader("shader/screen_vertex.glsl", "shader/screen_fragment.glsl");
 			break;
 		}
 	}
