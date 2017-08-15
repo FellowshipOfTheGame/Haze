@@ -61,14 +61,14 @@ float yaw = 0.0f, row = 0.0f;
 float yawVelocity = 3.14f, rowVelocity = 3.14f;
 
 // Model shaders
-const char* vsPath			= "../Haze/shader/vertex.glsl";
-const char* gsPath			= "../Haze/shader/geometry.glsl";
-const char* fsPath			= "../Haze/shader/fragment.glsl";
+const char* vsPath			= "shader/vertex.glsl";
+const char* gsPath			= "shader/geometry.glsl";
+const char* fsPath			= "shader/fragment.glsl";
 // Screen shaders
-const char* vsScreenPath	= "../Haze/shader/screen_vertex.glsl";
-const char* fsScreenPath	= "../Haze/shader/screen_fragment.glsl";
+const char* vsScreenPath	= "shader/screen_vertex.glsl";
+const char* fsScreenPath	= "shader/screen_fragment.glsl";
 // Model path
-const char* nanosuitPath	= "../Haze/resources/objects/nanosuit/nanosuit.obj";
+const char* nanosuitPath	= "resources/objects/nanosuit/nanosuit.obj";
 
 // Red Green Blue struct
 typedef struct {
@@ -291,9 +291,11 @@ int main()
 
 void processInput(GLFWwindow *window)
 {
+	// Quit
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
+	// Camera movement
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -306,6 +308,8 @@ void processInput(GLFWwindow *window)
 		camera.ProcessKeyboard(DOWN, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		camera.ProcessKeyboard(UP, deltaTime);
+
+	// Model rotation
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 		yaw += yawVelocity * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
@@ -322,6 +326,7 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
 	{
 		switch (key)
 		{
+			// Toggle geometry shader
 		case GLFW_KEY_F2:
 			delete nanosuitShader;
 			if (geometry)
@@ -330,9 +335,11 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
 				nanosuitShader = new Shader(vsPath, fsPath, gsPath);
 			geometry = !geometry;
 			break;
+			// Toggle post processing
 		case GLFW_KEY_F3:
 			postProcessing = !postProcessing;
 			break;
+			// Recompile shaders
 		case GLFW_KEY_F5:
 			delete nanosuitShader;
 			if (!geometry)
@@ -375,20 +382,24 @@ void createFramebuffer()
 
 void frambufferSizeCallback(GLFWwindow* window, int width, int height)
 {
+	// Set new width, height and viewport
 	screenWidth = width;
 	screenHeight = height;
 	glViewport(0, 0, width, height);
 
+	// Delete current textures and framebuffer
 	glDeleteTextures(1, &textureColorbuffer);
 	glDeleteFramebuffers(1, &framebuffer);
 	glDeleteRenderbuffers(1, &rbo);
 
+	// Recreate
 	createFramebuffer();
 }
 
-
+// Mouse handling
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
+	// Handle first mouse input
 	if (firstMouse)
 	{
 		lastX = xpos;
@@ -396,29 +407,34 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 		firstMouse = false;
 	}
 
+	// Calculate offsets
 	float xoffset = xpos - lastX;
 	float yoffset = lastY - ypos;
 
 	lastX = xpos;
 	lastY = ypos;
 
+	// Process camera rotation
 	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
+// Scroll handling
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
+	// Scale model
 	if (yoffset > 0.0)
 		scale *= 1.1f;
 	else
 		scale *= 0.9f;
 }
 
-
+// Error handling
 void errorHandler(int num, const char* message)
 {
 	std::cout << "Error " << num << ": " << message << std::endl;
 }
 
+// Color operations
 hsv rgb2hsv(rgb in)
 {
 	hsv         out;
@@ -463,7 +479,6 @@ hsv rgb2hsv(rgb in)
 
 	return out;
 }
-
 
 rgb hsv2rgb(hsv in)
 {
