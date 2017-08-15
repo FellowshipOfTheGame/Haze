@@ -4,6 +4,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <cstring>
 #include "GLFW/glfw3.h"
 #include "InputState.hpp"
 

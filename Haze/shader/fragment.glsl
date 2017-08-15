@@ -11,4 +11,5 @@ uniform sampler2D texture_diffuse1;
 void main()
 {    
     fragColor = texture(texture_diffuse1, vs_out.UV);
+	fragColor.a = 1.0;
 }

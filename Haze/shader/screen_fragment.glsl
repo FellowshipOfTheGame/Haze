@@ -4,10 +4,11 @@ in vec2 UV;
 
 out vec4 fragColor;
 
-uniform sampler2D texture_framebuffer;
+uniform sampler2D Screen;
 
 void main()
 {
-    vec3 col = vec3(1) - texture(texture_framebuffer, UV).rgb;
-    fragColor = vec4(col, 1.0);
+	vec4 frame = texture(Screen, UV);
+    vec3 col = vec3(1.0) - frame.rgb;
+    fragColor = vec4(col, frame.a);
 } 

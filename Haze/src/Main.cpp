@@ -19,6 +19,7 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 void errorHandler(int num, const char* message);
+void createFramebuffer();
 
 // Settings
 unsigned int screenWidth = 800;
@@ -51,13 +52,51 @@ bool geometry = false;
 // Using post processing?
 bool postProcessing = false;
 
-// Model scale and rotation
+// Model scale and axis (for rotation)
 glm::vec3 scale(1.0f, 1.0f, 1.0f);
 glm::vec3 up(0.0f, 0.0f, 1.0f);
 glm::vec3 fwd(1.0f, 0.0f, 0.0f);
-
+// Rotation and rotation velocity
 float yaw = 0.0f, row = 0.0f;
 float yawVelocity = 3.14f, rowVelocity = 3.14f;
+
+// Model shaders
+const char* vsPath			= "../Haze/shader/vertex.glsl";
+const char* gsPath			= "../Haze/shader/geometry.glsl";
+const char* fsPath			= "../Haze/shader/fragment.glsl";
+// Screen shaders
+const char* vsScreenPath	= "../Haze/shader/screen_vertex.glsl";
+const char* fsScreenPath	= "../Haze/shader/screen_fragment.glsl";
+// Model path
+const char* nanosuitPath	= "../Haze/resources/objects/nanosuit/nanosuit.obj";
+
+// Red Green Blue struct
+typedef struct {
+	double r;       // a fraction between 0 and 1
+	double g;       // a fraction between 0 and 1
+	double b;       // a fraction between 0 and 1
+} rgb;
+
+// Hue Saturation Value struct
+typedef struct {
+	double h;       // angle in degrees
+	double s;       // a fraction between 0 and 1
+	double v;       // a fraction between 0 and 1
+} hsv;
+
+// Transformations RGB to/from HSV
+hsv   rgb2hsv(rgb in);
+rgb   hsv2rgb(hsv in);
+
+// Framerate colors
+const double minHue = 218.0;
+const double maxHue = 360.0;
+const double saturation = 0.75;
+const double val = 1.0;
+
+// Desired framerates
+const float minFps = 1.0f / 15.0f;
+const float maxFps = 1.0f / 60.0f;
 
 int main()
 {
@@ -104,32 +143,12 @@ int main()
 	}
 
 	// Create shaders (vertex and fragment) and load model (nanosuit)
-	nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl");
-	screenShader = new Shader("shader/screen_vertex.glsl", "shader/screen_fragment.glsl");
-	nanosuit = new Model("resources/objects/nanosuit/nanosuit.obj");
+	nanosuitShader = new Shader(vsPath, fsPath);
+	screenShader = new Shader(vsScreenPath, fsScreenPath);
+	nanosuit = new Model(nanosuitPath);
 
-	// Generate framebuffer
-	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-	// Generate texture for framebuffer
-	glGenTextures(1, &textureColorbuffer);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
-
-	// Generate render bufffer
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-	// Check if framebuffer status is ready, unbind
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// Create framebuffer
+	createFramebuffer();
 
 	// Quad for framebuffer output (full screen)
 	float quadVertices[] = {
@@ -158,9 +177,20 @@ int main()
 	while (!glfwWindowShouldClose(window))
 	{
 		// Elapsed time
-		float currentFrame = glfwGetTime();
+		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+
+		// Find clear color from FPS
+		double t = (deltaTime - maxFps) / (minFps - maxFps);
+		std::cout << deltaTime << std::endl;
+		t = t < 0.0 ? 0.0 : t > 1.0 ? 1.0 : t;
+		rgb clearColor;
+		hsv hsvColor;
+		hsvColor.h = t * (maxHue - minHue) + minHue;
+		hsvColor.s = saturation;
+		hsvColor.v = val;
+		clearColor = hsv2rgb(hsvColor);
 
 		// Process input (keyboard)
 		processInput(window);
@@ -172,8 +202,15 @@ int main()
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glEnable(GL_DEPTH_TEST);
 
+		// Enable blending
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		// Clear framebuffer buffer
-		glClearColor(0.00f, 0.2f, 0.4f, 1.0f);
+		if(postProcessing)
+			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		else
+			glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		nanosuitShader->use();
@@ -192,7 +229,10 @@ int main()
 		nanosuitShader->setMat4("Projection", projection);
 		nanosuitShader->setMat4("View", view);
 		nanosuitShader->setMat4("Model", model);
-		nanosuitShader->setMat4("Normal", glm::transpose(glm::inverse(model)));
+		nanosuitShader->setMat4("NormalMatrix", glm::transpose(glm::inverse(model)));
+
+		// Set camera world position
+		nanosuitShader->setVec3("ViewPos", camera.Position);
 
 		// Mouse position
 		double mousex, mousey;
@@ -212,11 +252,11 @@ int main()
 			glDisable(GL_DEPTH_TEST);
 
 			// Clear scene (useless clear)
-			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			// Bind texture to shader and use program
-			screenShader->setInt("Framebuffer", 0);
+			screenShader->setInt("Screen", 0);
 			screenShader->use();
 
 			//Bind quad and draw texture
@@ -282,9 +322,9 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
 		case GLFW_KEY_F2:
 			delete nanosuitShader;
 			if (geometry)
-				nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl");
+				nanosuitShader = new Shader(vsPath, fsPath);
 			else
-				nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl", "shader/geometry.glsl");
+				nanosuitShader = new Shader(vsPath, fsPath, gsPath);
 			geometry = !geometry;
 			break;
 		case GLFW_KEY_F3:
@@ -293,15 +333,41 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
 		case GLFW_KEY_F5:
 			delete nanosuitShader;
 			if (!geometry)
-				nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl");
+				nanosuitShader = new Shader(vsPath, fsPath);
 			else
-				nanosuitShader = new Shader("shader/vertex.glsl", "shader/fragment.glsl", "shader/geometry.glsl");
+				nanosuitShader = new Shader(vsPath, fsPath, gsPath);
 
 			delete screenShader;
-			screenShader = new Shader("shader/screen_vertex.glsl", "shader/screen_fragment.glsl");
+			screenShader = new Shader(vsScreenPath, fsScreenPath);
 			break;
 		}
 	}
+}
+
+void createFramebuffer()
+{
+	// Generate framebuffer
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	// Generate texture for framebuffer
+	glGenTextures(1, &textureColorbuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenWidth, screenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+	// Generate render bufffer
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	// Check if framebuffer status is ready, unbind
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void frambufferSizeCallback(GLFWwindow* window, int width, int height)
@@ -314,24 +380,7 @@ void frambufferSizeCallback(GLFWwindow* window, int width, int height)
 	glDeleteFramebuffers(1, &framebuffer);
 	glDeleteRenderbuffers(1, &rbo);
 
-	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-	glGenTextures(1, &textureColorbuffer);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
-
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	createFramebuffer();
 }
 
 
@@ -365,4 +414,108 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 void errorHandler(int num, const char* message)
 {
 	std::cout << "Error " << num << ": " << message << std::endl;
+}
+
+hsv rgb2hsv(rgb in)
+{
+	hsv         out;
+	double      min, max, delta;
+
+	min = in.r < in.g ? in.r : in.g;
+	min = min  < in.b ? min : in.b;
+
+	max = in.r > in.g ? in.r : in.g;
+	max = max  > in.b ? max : in.b;
+
+	out.v = max;                                // v
+	delta = max - min;
+	if (delta < 0.00001)
+	{
+		out.s = 0;
+		out.h = 0; // undefined, maybe nan?
+		return out;
+	}
+	if (max > 0.0) { // NOTE: if Max is == 0, this divide would cause a crash
+		out.s = (delta / max);                  // s
+	}
+	else {
+		// if max is 0, then r = g = b = 0              
+		// s = 0, h is undefined
+		out.s = 0.0;
+		out.h = NAN;                            // its now undefined
+		return out;
+	}
+	if (in.r >= max)                           // > is bogus, just keeps compilor happy
+		out.h = (in.g - in.b) / delta;        // between yellow & magenta
+	else
+		if (in.g >= max)
+			out.h = 2.0 + (in.b - in.r) / delta;  // between cyan & yellow
+		else
+			out.h = 4.0 + (in.r - in.g) / delta;  // between magenta & cyan
+
+	out.h *= 60.0;                              // degrees
+
+	if (out.h < 0.0)
+		out.h += 360.0;
+
+	return out;
+}
+
+
+rgb hsv2rgb(hsv in)
+{
+	double      hh, p, q, t, ff;
+	long        i;
+	rgb         out;
+
+	if (in.s <= 0.0) {       // < is bogus, just shuts up warnings
+		out.r = in.v;
+		out.g = in.v;
+		out.b = in.v;
+		return out;
+	}
+	hh = in.h;
+	if (hh >= 360.0) hh = 0.0;
+	hh /= 60.0;
+	i = (long)hh;
+	ff = hh - i;
+	p = in.v * (1.0 - in.s);
+	q = in.v * (1.0 - (in.s * ff));
+	t = in.v * (1.0 - (in.s * (1.0 - ff)));
+
+	switch (i) {
+	case 0:
+		out.r = in.v;
+		out.g = t;
+		out.b = p;
+		break;
+	case 1:
+		out.r = q;
+		out.g = in.v;
+		out.b = p;
+		break;
+	case 2:
+		out.r = p;
+		out.g = in.v;
+		out.b = t;
+		break;
+
+	case 3:
+		out.r = p;
+		out.g = q;
+		out.b = in.v;
+		break;
+	case 4:
+		out.r = t;
+		out.g = p;
+		out.b = in.v;
+		break;
+	case 5:
+	default:
+		out.r = in.v;
+		out.g = p;
+		out.b = q;
+		break;
+	}
+	return out;
 }
