@@ -183,7 +183,6 @@ int main()
 
 		// Find clear color from FPS
 		double t = (deltaTime - maxFps) / (minFps - maxFps);
-		std::cout << deltaTime << std::endl;
 		t = t < 0.0 ? 0.0 : t > 1.0 ? 1.0 : t;
 		rgb clearColor;
 		hsv hsvColor;
