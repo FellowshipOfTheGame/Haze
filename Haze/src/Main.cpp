@@ -242,6 +242,9 @@ int main()
 		nanosuitShader->setFloat("Time", (float)glfwGetTime());
 		nanosuitShader->setVec2("Mouse", glm::vec2((float)mousex, (float)mousey));
 		nanosuitShader->setVec2("Resolution", glm::vec2(screenWidth, screenHeight));
+		nanosuitShader->setFloat("Attenuation.constant", 1.0f);
+		nanosuitShader->setFloat("Attenuation.linear", 0.09f);
+		nanosuitShader->setFloat("Attenuation.quadratic", 0.032f);
 		
 		nanosuit->Draw(nanosuitShader);
 
