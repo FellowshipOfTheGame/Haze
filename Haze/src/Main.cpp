@@ -258,8 +258,11 @@ int main()
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			// Bind texture to shader and use program
-			screenShader->setInt("Screen", 0);
 			screenShader->use();
+			screenShader->setInt("Screen", 0);
+			screenShader->setFloat("Time", (float)glfwGetTime());
+			screenShader->setVec2("Mouse", glm::vec2((float)mousex, (float)mousey));
+			screenShader->setVec2("Resolution", glm::vec2(screenWidth, screenHeight));
 
 			//Bind quad and draw texture
 			glBindVertexArray(quadVAO);

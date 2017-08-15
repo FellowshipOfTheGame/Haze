@@ -6,3 +6,5 @@ cmake/
 Win32/
 
 Haze\.dir/
+
+Haze/Haze\.exe
