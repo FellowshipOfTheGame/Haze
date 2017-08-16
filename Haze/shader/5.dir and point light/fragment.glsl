@@ -30,6 +30,9 @@ struct LightAttenuation
 
 uniform LightAttenuation Attenuation;
 
+//#define MAX_LIGHTS 8
+//uniform Light lights[MAX_LIGHTS];
+
 out vec4 fragColor;
 
 void main()
